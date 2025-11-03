@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model University {
+  id        Int      @id @default(autoincrement())
+  name      String
+  location  String?
+  createdAt DateTime @default(now())
+  users     User[]
+  courses   Course[]
+}
+
+model User {
+  id           Int                @id @default(autoincrement())
+  userName     String
+  email        String             @unique
+  password     String
+  role         String             @default("STUDENT")
+  universityId Int
+  university   University         @relation(fields: [universityId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  enrollments  Enrollment[]
+  teaching     InstructorCourse[]
+  refreshToken String?
+  createdAt    DateTime           @default(now())
+}
+
+model Course {
+  id           Int                @id @default(autoincrement())
+  title        String
+  description  String?
+  credits      Int                @default(3)
+  universityId Int
+  university   University         @relation(fields: [universityId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  enrollments  Enrollment[]
+  instructors  InstructorCourse[]
+  createdAt    DateTime           @default(now())
+}
+
+model Enrollment {
+  studentId  Int
+  courseId   Int
+  enrolledAt DateTime @default(now())
+  grade      String?
+  student    User     @relation(fields: [studentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([studentId, courseId])
+}
+
+model InstructorCourse {
+  instructorId Int
+  courseId     Int
+  instructor   User   @relation(fields: [instructorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  course       Course @relation(fields: [courseId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([instructorId, courseId])
+}
