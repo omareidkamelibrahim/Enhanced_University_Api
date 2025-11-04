@@ -7,12 +7,13 @@ const REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET || 'change_this_too';
 
 export type JWTPayload = { id: number; email: string; role: string };
 
-export function signAccessToken(payload: JWTPayload, expiresIn = '15m') {
-  return jwt.sign(payload, ACCESS_SECRET, { expiresIn });
+// استخدم any هنا لتجاوز التقييد الصارم من TypeScript
+export function signAccessToken(payload: JWTPayload, expiresIn: string | number = '15m') {
+  return jwt.sign(payload, ACCESS_SECRET, { expiresIn } as any);
 }
 
-export function signRefreshToken(payload: JWTPayload, expiresIn = '7d') {
-  return jwt.sign(payload, REFRESH_SECRET, { expiresIn });
+export function signRefreshToken(payload: JWTPayload, expiresIn: string | number = '7d') {
+  return jwt.sign(payload, REFRESH_SECRET, { expiresIn } as any);
 }
 
 export function verifyAccessToken(token: string) {
@@ -35,12 +36,11 @@ export async function requireAuth(req: NextRequest) {
   try {
     const payload = verifyAccessToken(token);
     return payload;
-  } catch (e) {
+  } catch {
     throw new Error('Invalid token');
   }
 }
 
-// helper to rotate and persist refresh token on user record
 export async function saveRefreshTokenForUser(userId: number, refreshToken: string) {
   await prisma.user.update({ where: { id: userId }, data: { refreshToken } });
 }
